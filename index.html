@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: -1;
+    }
+
+    .custom-button {
+      background-color: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded p-6 shadow-md">
+      <h1 class="text-2xl font-semibold mb-4">My Todo List</h1>
+      <form id="todo-form" class="mb-4">
+        <input id="todo-input" type="text" class="w-full border rounded py-2 px-3 mb-2" placeholder="Add new task" required>
+        <button type="submit" class="custom-button text-white py-2 px-4 rounded">Add Task</button>
+      </form>
+      <ul id="todo-list">
+        
+      </ul>
+      <div id="todo-stats" class="mt-4 text-gray-600">
+        <span id="todo-count"></span>
+        <span id="todo-clear" class="ml-4 cursor-pointer hidden">Clear Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS('particles-js', {
+      particles: {
+        number: {
+          value: 80,
+          density: {
+            enable: true,
+            value_area: 800
+          }
+        },
+        color: {
+          value: '#ffffff'
+        },
+        shape: {
+          type: 'circle',
+          stroke: {
+            width: 0,
+            color: '#000000'
+          },
+          polygon: {
+            nb_sides: 5
+          },
+          image: {
+            src: 'img/github.svg',
+            width: 100,
+            height: 100
+          }
+        },
+        opacity: {
+          value: 0.5,
+          random: false,
+          anim: {
+            enable: false,
+            speed: 1,
+            opacity_min: 0.1,
+            sync: false
+          }
+        },
+        size: {
+          value: 5,
+          random: true,
+          anim: {
+            enable: false,
+            speed: 40,
+            size_min: 0.1,
+            sync: false
+          }
+        },
+        line_linked: {
+          enable: true,
+          distance: 150,
+          color: '#ffffff',
+          opacity: 0.4,
+          width: 1
+        },
+        move: {
+          enable: true,
+          speed: 6,
+          direction: 'none',
+          random: false,
+          straight: false,
+          out_mode: 'out',
+          bounce: false,
+          attract: {
+            enable: false,
+            rotateX: 600,
+            rotateY: 1200
+          }
+        }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: {
+            enable: true,
+            mode: 'repulse'
+          },
+          onclick: {
+            enable: true,
+            mode: 'push'
+          },
+          resize: true
+        },
+        modes: {
+          grab: {
+            distance: 400,
+            line_linked: {
+              opacity: 1
+            }
+          },
+          bubble: {
+            distance: 400,
+            size: 40,
+            duration: 2,
+            opacity: 8,
+            speed: 3
+          },
+          repulse: {
+            distance: 200,
+            duration: 0.4
+          },
+          push: {
+            particles_nb: 4
+          },
+          remove: {
+            particles_nb: 2
+          }
+        }
+      },
+      retina_detect: true
+    });
+  </script>
+  
+  <script>
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    const todoStats = document.getElementById('todo-stats');
+    const todoCount = document.getElementById('todo-count');
+    const todoClear = document.getElementById('todo-clear');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const taskName = input.value.trim();
+      if (taskName === '') return;
+
+      const li = document.createElement('li');
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+      
+      li.className = 'flex justify-between items-center py-2 px-3 border-b';
+      li.innerHTML = `
+        <span class="flex items-center justify-between w-full">${taskName} <span class="bg-gray-200 text-xs text-gray-600 py-1 px-2 rounded-full">${time}</span></span>
+        <div class="flex">
+          <button class="text-green-500 mr-2">Complete</button>
+          <button class="text-yellow-500 mr-2">Edit</button>
+          <button class="text-red-500">Delete</button>
+        </div>
+      `;
+      todoList.appendChild(li);
+      input.value = '';
+
+      updateStats();
+
+      li.querySelector('.text-green-500').addEventListener('click', function() {
+        li.classList.toggle('line-through');
+        updateStats();
+      });
+
+      li.querySelector('.text-yellow-500').addEventListener('click', function() {
+        const taskContent = li.querySelector('span').textContent;
+        const newTaskName = prompt('Edit Task', taskContent);
+        if (newTaskName !== null && newTaskName.trim() !== '') {
+          li.querySelector('span').textContent = newTaskName;
+        }
+      });
+
+      li.querySelector('.text-red-500').addEventListener('click', function() {
+        li.remove();
+        updateStats();
+      });
+    });
+
+    function updateStats() {
+      const totalTasks = todoList.querySelectorAll('li').length;
+      const completedTasks = todoList.querySelectorAll('.line-through').length;
+      const remainingTasks = totalTasks - completedTasks;
+
+      todoCount.textContent = `Total: ${totalTasks} | Completed: ${completedTasks} | Remaining: ${remainingTasks}`;
+
+      if (completedTasks > 0) {
+        todoClear.classList.remove('hidden');
+      } else {
+        todoClear.classList.add('hidden');
+      }
+    }
+
+    todoClear.addEventListener('click', function() {
+      const completedTasks = todoList.querySelectorAll('.line-through');
+      completedTasks.forEach(task => task.remove());
+      updateStats();
+    });
+  </script>
+</body>
+</html>
